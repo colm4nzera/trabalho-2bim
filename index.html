@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmo Graphplan</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f0f0;
+            color: #333;
+        }
+        .container {
+            width: 80%;
+            margin: auto;
+            overflow: hidden;
+        }
+        header {
+            background: #006699;
+            color: #fff;
+            padding: 20px 0;
+            border-bottom: #ff6600 3px solid;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        header h1 {
+            text-align: center;
+            margin: 0;
+            font-size: 24px;
+        }
+        nav ul {
+            padding: 0;
+            list-style: none;
+            text-align: center;
+            margin-top: 10px;
+        }
+        nav ul li {
+            display: inline;
+            padding: 0 20px;
+        }
+        nav ul li a {
+            color: #fff;
+            text-decoration: none;
+            text-transform: uppercase;
+            font-size: 16px;
+        }
+        .content {
+            background: #fff;
+            padding: 20px;
+            margin: 20px 0;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            color: #006699;
+        }
+        h3 {
+            color: #ff6600;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            border-left: 4px solid #ff6600;
+            overflow-x: auto;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+        ol {
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1>Algoritmo Graphplan</h1>
+            <nav>
+                <ul>
+                    <li><a href="#descricao">Descrição</a></li>
+                    <li><a href="#strips-pddl">STRIPS e PDDL</a></li>
+                    <li><a href="#exemplo">Exemplo</a></li>
+                    <li><a href="#pyperplan-blocks">Pyperplan - Blocks</a></li>
+                    <li><a href="#pyperplan-logistics">Pyperplan - Logistics</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <section id="descricao" class="content">
+            <h2>Descrição do Algoritmo Graphplan</h2>
+            <p>O Graphplan é um algoritmo de planejamento automático utilizado na inteligência artificial. Foi introduzido por Avrim Blum e Merrick Furst em 1995. O Graphplan constrói um gráfico de planejamento, que é uma estrutura gráfica composta de níveis alternados de literais e ações. Ele utiliza essa estrutura para encontrar um plano que alcance os objetivos desejados a partir do estado inicial.</p>
+            <p>O processo do Graphplan pode ser resumido em duas fases principais:</p>
+            <ul>
+                <li><strong>Expansão do gráfico:</strong> O gráfico é construído incrementando alternadamente níveis de ações e literais até que todos os objetivos estejam presentes sem inconsistências.</li>
+                <li><strong>Busca regressiva:</strong> A partir do nível final, o algoritmo realiza uma busca regressiva para extrair um plano viável, garantindo que todas as pré-condições das ações estejam satisfeitas.</li>
+            </ul>
+        </section>
+
+        <section id="strips-pddl" class="content">
+            <h2>Descrição das Linguagens STRIPS e PDDL</h2>
+            <h3>STRIPS</h3>
+            <p>STRIPS (Stanford Research Institute Problem Solver) é uma linguagem formal utilizada para representar problemas de planejamento. Ela descreve estados iniciais, objetivos, e ações em termos de pré-condições e efeitos. A representação STRIPS facilita a aplicação de algoritmos de planejamento, como o Graphplan, permitindo a definição clara de problemas e soluções.</p>
+            
+            <h3>PDDL</h3>
+            <p>PDDL (Planning Domain Definition Language) é uma linguagem mais avançada e flexível que STRIPS, desenvolvida para padronizar a representação de problemas de planejamento. PDDL permite descrever domínios e problemas em um formato textual, suportando diversas variantes e extensões que permitem modelar situações complexas e dinâmicas. É amplamente utilizada em competições de planejamento e pesquisa acadêmica.</p>
+        </section>
+
+        <section id="exemplo" class="content">
+            <h2>Exemplo de Aplicação do Graphplan</h2>
+            <p>Considere o problema onde um robô deve mover uma caixa de uma sala para outra. Aqui está a definição do domínio e do problema em PDDL:</p>
+            <pre>
+(define (domain mover-dom)
+  (:predicates
+    (at ?obj ?loc)
+    (robot ?r)
+    (box ?b)
+    (room ?loc))
+  (:action mover-robo
+    :parameters (?r - robot ?from - room ?to - room)
+    :precondition (at ?r ?from)
+    :effect (and (not (at ?r ?from)) (at ?r ?to)))
+  (:action mover-caixa
+    :parameters (?r - robot ?b - box ?from - room ?to - room)
+    :precondition (and (at ?r ?from) (at ?b ?from))
+    :effect (and (not (at ?b ?from)) (at ?b ?to))))
+            </pre>
+            <p>E aqui está a definição do problema em PDDL:</p>
+            <pre>
+(define (problem mover-caixa)
+  (:domain mover-dom)
+  (:objects
+    robo - robot
+    caixa - box
+    sala1 sala2 - room)
+  (:init
+    (at robo sala1)
+    (at caixa sala1))
+  (:goal
+    (at caixa sala2)))
+            </pre>
+            <p>Neste exemplo, o Graphplan pode ser usado para encontrar uma sequência de ações que leva o robô a mover a caixa da sala1 para a sala2. O plano pode ser algo como:</p>
+            <ol>
+                <li>Mover o robô de sala1 para sala2.</li>
+                <li>Mover o robô de volta para sala1.</li>
+                <li>Mover a caixa de sala1 para sala2.</li>
+            </ol>
+        </section>
+
+        <section id="pyperplan-blocks" class="content">
+            <h2>Implementação e Tarefa Alvo do Problema Blocks com Pyperplan</h2>
+            <p>O <a href="https://pypi.org/project/pyperplan/" target="_blank">pyperplan</a> é uma biblioteca Python para resolver problemas de planejamento definidos em PDDL. Aqui está uma descrição de como usar o pyperplan para resolver o problema clássico dos blocos.</p>
+            <h3>Instalação</h3>
+            <pre>pip install pyperplan</pre>
+            <h3>Definição do Problema Blocks em PDDL</h3>
+            <p>Primeiro, você precisa definir o domínio e o problema em PDDL. Aqui está um exemplo:</p>
+            <h4>Domínio (`blocks-domain.pddl`)</h4>
+            <pre>
+(define (domain blocks)
+  (:predicates
+    (ontable ?x)
+    (on ?x ?y)
+    (clear ?x)
+    (handempty)
+    (holding ?x))
+  (:action pick-up
+    :parameters (?x)
+    :precondition (and (clear ?x) (ontable ?x) (handempty))
+    :effect (and (holding ?x) (not (clear ?x)) (not (ontable ?x)) (not (handempty))))
+  (:action put-down
+    :parameters (?x)
+    :precondition (holding ?x)
+    :effect (and (ontable ?x) (clear ?x) (handempty) (not (holding ?x))))
+  (:action stack
+    :parameters (?x ?y)
+    :precondition (and (holding ?x) (clear ?y))
+    :effect (and (on ?x ?y) (clear ?x) (handempty) (not (holding ?x)) (not (clear ?y))))
+  (:action unstack
+    :parameters (?x ?y)
+    :precondition (and (on ?x ?y) (clear ?x) (handempty))
+    :effect (and (holding ?x) (clear ?y) (not (on ?x ?y)) (not (clear ?x)) (not (handempty))))
+)
+            </pre>
+            <h4>Problema (`blocks-problem.pddl`)</h4>
+            <pre>
+(define (problem blocks-problem)
+  (:domain blocks)
+  (:objects
+    block1 block2 - block)
+  (:init
+    (clear block1)
+    (ontable block2)
+    (handempty)
+    (on block1 block2))
+  (:goal (and (on block2 block1) (clear block2)))
+)
+            </pre>
+            <h3>Usando o Pyperplan</h3>
+            <p>Com os arquivos PDDL definidos, você pode usar o pyperplan para resolver o problema com o seguinte script Python:</p>
+            <pre>
+from pyperplan import search, grounding
+from pyperplan.pddl.parser import Parser
+
+def solve_pddl(domain_file, problem_file):
+    # Parsing the domain and problem files
+    parser = Parser(domain_file, problem_file)
+    domain = parser.parse_domain()
+    problem = parser.parse_problem(domain)
+
+    # Grounding the problem
+    task = grounding.ground(problem)
+
+    # Searching for a solution
+    plan = search.astar(task)
+    return plan
+
+if __name__ == "__main__":
+    domain_file = "blocks-domain.pddl"
+    problem_file = "blocks-problem.pddl"
+    plan = solve_pddl(domain_file, problem_file)
+    for action in plan:
+        print(action)
+            </pre>
+            <p>Este script carrega os arquivos PDDL, realiza o grounding do problema e então busca uma solução usando o algoritmo A*. O plano resultante é impresso na tela.</p>
+        </section>
+
+        <section id="pyperplan-logistics" class="content">
+            <h2>Implementação e Tarefa Alvo do Problema Logistics com Pyperplan</h2>
+            <p>O <a href="https://pypi.org/project/pyperplan/" target="_blank">pyperplan</a> é uma biblioteca Python para resolver problemas de planejamento definidos em PDDL. Aqui está uma descrição de como usar o pyperplan para resolver o problema de logística.</p>
+            <h3>Instalação</h3>
+            <pre>pip install pyperplan</pre>
+            <h3>Definição do Problema Logistics em PDDL</h3>
+            <p>Primeiro, você precisa definir o domínio e o problema em PDDL. Aqui está um exemplo:</p>
+            <h4>Domínio (`logistics-domain.pddl`)</h4>
+            <pre>
+(define (domain logistics)
+  (:predicates
+    (at ?obj ?loc)
+    (in ?obj ?veh)
+    (airport ?loc)
+    (city ?loc)
+    (truck ?veh)
+    (airplane ?veh)
+    (package ?obj)
+    (location ?loc))
+  (:action load-truck
+    :parameters (?pkg - package ?truck - truck ?loc - location)
+    :precondition (and (at ?pkg ?loc) (at ?truck ?loc))
+    :effect (and (in ?pkg ?truck) (not (at ?pkg ?loc))))
+  (:action unload-truck
+    :parameters (?pkg - package ?truck - truck ?loc - location)
+    :precondition (and (in ?pkg ?truck) (at ?truck ?loc))
+    :effect (and (at ?pkg ?loc) (not (in ?pkg ?truck))))
+  (:action load-airplane
+    :parameters (?pkg - package ?plane - airplane ?loc - airport)
+    :precondition (and (at ?pkg ?loc) (at ?plane ?loc))
+    :effect (and (in ?pkg ?plane) (not (at ?pkg ?loc))))
+  (:action unload-airplane
+    :parameters (?pkg - package ?plane - airplane ?loc - airport)
+    :precondition (and (in ?pkg ?plane) (at ?plane ?loc))
+    :effect (and (at ?pkg ?loc) (not (in ?pkg ?plane))))
+  (:action drive-truck
+    :parameters (?truck - truck ?from ?to - location ?city - city)
+    :precondition (and (at ?truck ?from) (location ?from) (location ?to) (city ?city))
+    :effect (and (at ?truck ?to) (not (at ?truck ?from))))
+  (:action fly-airplane
+    :parameters (?plane - airplane ?from ?to - airport)
+    :precondition (and (at ?plane ?from) (airport ?from) (airport ?to))
+    :effect (and (at ?plane ?to) (not (at ?plane ?from))))
+)
+            </pre>
+            <h4>Problema (`logistics-problem.pddl`)</h4>
+            <pre>
+(define (problem logistics-problem)
+  (:domain logistics)
+  (:objects
+    pkg1 pkg2 - package
+    truck1 - truck
+    plane1 - airplane
+    city1 city2 - city
+    loc1 loc2 - location
+    airport1 airport2 - airport)
+  (:init
+    (at pkg1 loc1)
+    (at pkg2 loc2)
+    (at truck1 loc1)
+    (at plane1 airport1)
+    (location loc1)
+    (location loc2)
+    (airport airport1)
+    (airport airport2)
+    (city city1)
+    (city city2))
+  (:goal (and (at pkg1 loc2) (at pkg2 loc1)))
+)
+            </pre>
+            <h3>Usando o Pyperplan</h3>
+            <p>Com os arquivos PDDL definidos, você pode usar o pyperplan para resolver o problema com o seguinte script Python:</p>
+            <pre>
+from pyperplan import search, grounding
+from pyperplan.pddl.parser import Parser
+
+def solve_pddl(domain_file, problem_file):
+    # Parsing the domain and problem files
+    parser = Parser(domain_file, problem_file)
+    domain = parser.parse_domain()
+    problem = parser.parse_problem(domain)
+
+    # Grounding the problem
+    task = grounding.ground(problem)
+
+    # Searching for a solution
+    plan = search.astar(task)
+    return plan
+
+if __name__ == "__main__":
+    domain_file = "logistics-domain.pddl"
+    problem_file = "logistics-problem.pddl"
+    plan = solve_pddl(domain_file, problem_file)
+    for action in plan:
+        print(action)
+            </pre>
+            <p>Este script carrega os arquivos PDDL, realiza o grounding do problema e então busca uma solução usando o algoritmo A*. O plano resultante é impresso na tela.</p>
+        </section>
+    </div>
+</body>
+</html>
